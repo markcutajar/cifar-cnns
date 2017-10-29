@@ -4,3 +4,4 @@ config/settings.py
 config/__pycache__
 .ipynb_checkpoints
 data/*
+tf-log/*
