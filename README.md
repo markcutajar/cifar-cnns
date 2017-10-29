@@ -3,8 +3,11 @@
 A repo that presents various models to classify CIFAR images. 
 
 ## Setting up
+A virtual environment using conda or venv is highly suggested for this project.
 Python version: v3.6.3. <br>
-__Do not use a newer version of python unless this is supported by the version of tensorflow you are using.__ 
+__Do not use a newer version of python unless this is supported by the version of tensorflow you are using.__ <br>
+
+To load dependencies just run `pip install -r requirements.txt` in the virtual environment or otherwise.
 
 The data is needed and not setup in repository. This can be optained from this <a href="https://www.cs.toronto.edu/~kriz/cifar.html">link</a>.
 The data should be extracted into a folder `data/` in the main directory.
