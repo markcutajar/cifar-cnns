@@ -1,5 +1,5 @@
 .idea
 __pycache__
-config/*
+config/settings.py
 .ipynb_checkpoints
 data/*
