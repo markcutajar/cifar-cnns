@@ -1,6 +1,7 @@
 # cifar-cnn
 
 A repo that presents various models to classify CIFAR images. 
+The CIFAR10 task aims to classify images in one of the following categories: [airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck].
 
 ## Setting up
 A virtual environment using conda or venv is highly suggested for this project.
