@@ -20,5 +20,7 @@ The repo is setup in a logical manner. All the models are found in `models.py` a
 
 To run the model specified in `run.py` just run `python run.py`.
 
+__The cifar-cnns notebook has tests, results and explanations.__
+
 __Please note this repo is still under construction.__
 
