@@ -4,7 +4,8 @@
 This module provides classes for loading datasets and iterating over batches of
 data points.
 
-Credit goes to the
+Credit goes to the University of Edinburgh Team. Namely the team handling the machine learning practical repository at:
+https://github.com/CSTR-Edinburgh/mlpractical
 """
 
 import os
@@ -172,6 +173,7 @@ class OneOfKDataProvider(DataProvider):
         one_of_k_targets[range(int_targets.shape[0]), int_targets] = 1
         return one_of_k_targets
 
+
 class CIFAR10DataProvider(OneOfKDataProvider):
     """Data provider for CIFAR-10 object images."""
 
@@ -233,7 +235,7 @@ class CIFAR10DataProvider(OneOfKDataProvider):
             self.label_map.extend(str(item, encoding='UTF-8'))
 
         # Get metadata information
-        self.num_classes= len(metadata.get(b'label_names'))
+        self.num_classes = len(metadata.get(b'label_names'))
         image_sides = int(np.sqrt(metadata.get(b'num_vis') / num_rgb_layers))
 
         # Convert shape
@@ -244,4 +246,3 @@ class CIFAR10DataProvider(OneOfKDataProvider):
         # pass the loaded data to the parent class __init__
         super(CIFAR10DataProvider, self).__init__(
             self.data, self.labels, batch_size, max_num_batches, shuffle_order, rng)
-
