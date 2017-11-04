@@ -8,7 +8,6 @@ Credit goes to the University of Edinburgh Team. Namely the team handling the ma
 https://github.com/CSTR-Edinburgh/mlpractical
 """
 
-import os
 import pickle
 import numpy as np
 from config import settings
