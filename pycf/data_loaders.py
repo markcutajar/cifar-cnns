@@ -13,7 +13,7 @@ import numpy as np
 from config import settings
 
 
-class DataProvider(object):
+class DataLoader(object):
     """Generic data provider."""
 
     def __init__(self, inputs, targets, batch_size, max_num_batches=-1,
@@ -140,7 +140,7 @@ class DataProvider(object):
         return self.next()
 
 
-class OneOfKDataProvider(DataProvider):
+class OneOfKDataProvider(DataLoader):
     """1-of-K classification target data provider.
 
     Transforms integer target labels to binary 1-of-K encoded targets.
