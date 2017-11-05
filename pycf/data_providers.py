@@ -3,9 +3,6 @@
 
 This module provides classes for loading datasets and iterating over batches of
 data points.
-
-Credit goes to the University of Edinburgh Team. Namely the team handling the machine learning practical repository at:
-https://github.com/CSTR-Edinburgh/mlpractical
 """
 
 import tensorflow as tf
