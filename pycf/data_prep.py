@@ -1,4 +1,5 @@
 import os
+import json
 import pickle
 import logging
 import numpy as np
@@ -22,16 +23,50 @@ def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def run():
-    batch_files = {'train': settings.TRAIN_FILES.split(','), 'valid': settings.VALID_FILES.split(','),
-                   'test': settings.TEST_FILES.split(',')}
+def save_metadata():
 
+    meta_load_location = settings.RAW_META
+    meta_save_location = '{}'.format(settings.TFR_META)
+    save_data = {}
+    label_map = []
+
+    # Load metadata
+    with open(meta_load_location, 'rb') as file:
+        metadata = pickle.load(file, encoding='bytes')
+
+    # Get label map from metadata
+    for item in metadata.get(b'label_names'):
+        label_map.extend([str(item, encoding='UTF-8')])
+
+    # Set metadata information
+    save_data['num_classes'] = len(label_map)
+    save_data['label_map'] = label_map
+    save_data['height'] = 32
+    save_data['width'] = 32
+    save_data['depth'] = 3
+
+    # Save in json file
+    with open(meta_save_location, 'w') as file:
+        json.dump(save_data, file)
+
+
+def run():
+
+    batch_files = {'train': settings.RAW_TRAIN.split(','), 'valid': settings.RAW_VALID.split(','),
+                   'test': settings.RAW_TEST.split(',')}
+
+    save_files = {'train': settings.TFR_TRAIN, 'valid': settings.TFR_VALID, 'test': settings.TFR_TEST}
+
+    # Save metadata
+    logger.info('Saving metadata')
+    save_metadata()
+    """
     # Iterate over all the sets to save as TFRecords
     for which_set in ('train', 'valid', 'test'):
 
-        # Set the TFRecord filename and write
+        # Set the TFRecord filename and writer
         logger.info('Saving in tfrecord set: {}'.format(which_set))
-        tfrecords_filename = '{}{}_{}.tfrecords'.format(settings.DATA_LOCATION, 'cifar10', which_set)
+        tfrecords_filename = '{}'.format(save_files[which_set])
         writer = tf.python_io.TFRecordWriter(tfrecords_filename)
 
         # Get data and labels
@@ -63,3 +98,4 @@ def run():
 
                 writer.write(example.SerializeToString())
         writer.close()
+    """
