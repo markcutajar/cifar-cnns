@@ -1,49 +1,54 @@
 import os
 import datetime
-import numpy as np
 import tensorflow as tf
 
-from pycf.models import two_layer_fc_model
-from pycf.models import four_layer_fc_model
+import pycf.models as models
 from pycf.data_providers import CIFAR10DataProvider
 
+# Set log level to suppress build warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 if __name__ == '__main__':
-    # Set log level to remove build warnings
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-    # Load Training data
-    train_data = CIFAR10DataProvider(shape='2d')
-
-    # Create graph
+    # Create Graph
     modelA = tf.Graph()
 
-    # Define model
-    with modelA.as_default():
-        modelInfo = four_layer_fc_model()
+    num_epochs = 10
+    batch_size = 100
+    total_batches = 400
 
-        # Set logging files for tensorboard
+    with modelA.as_default():
+        # Create dataset and function for next example
+        train_data = CIFAR10DataProvider(batch_size=batch_size, epochs=num_epochs, shape='2d')
+        next_example, next_label = train_data.next()
+
+        # Define model
+        metrics_ops, train_ops = models.fc6(next_example, next_label)
+
+    with modelA.as_default():
+
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        train_writer = tf.summary.FileWriter(os.path.join('tf-log', timestamp, 'train'), graph=modelA)
+        train_writer = tf.summary.FileWriter(os.path.join('tf-log', timestamp, 'train'), graph=tf.get_default_graph())
 
-    # Train model
-    with modelA.as_default():
         with tf.Session() as sess:
-            init_op = tf.global_variables_initializer()
-            sess.run(init_op)
 
-            num_epoch = 20
-            for epochs in range(num_epoch):
-                running_error = 0
-                for batch_num, (input_batch, target_batch) in enumerate(train_data):
-                    _, batch_error, summary = sess.run([modelInfo.get('train_op'),
-                                                        modelInfo.get('error'),
-                                                        modelInfo.get('summary_op')],
+            sess.run(tf.global_variables_initializer())
 
-                                                       feed_dict={modelInfo.get('inputs'): input_batch,
-                                                                  modelInfo.get('targets'): target_batch})
+            running_err = 0
+            running_acc = 0
+            train_step = 0
 
-                    running_error += batch_error
-                    train_writer.add_summary(summary, epochs * train_data.num_batches + batch_num)
+            while train_step < num_epochs * total_batches:
+                train_info, metrics = sess.run([train_ops, metrics_ops])
 
-                running_error /= train_data.num_batches
-                print('End of epoch {0}: Average epoch error = {1:.2f}'.format(epochs + 1, running_error))
+                train_writer.add_summary(train_info['summary'], train_step)
+                running_err += metrics['error']
+                running_acc += metrics['accuracy']
+
+                if (train_step % total_batches == 0) and (train_step != 0):
+                    print('Batch {0:02}\t| Average Error = {1:02.2f}\t| Average Accuracy = {2:.4f}'
+                          .format(train_step, running_err / total_batches, running_acc / total_batches))
+
+                    running_err = 0
+                    running_acc = 0
+                train_step += 1
