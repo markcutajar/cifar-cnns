@@ -2,15 +2,10 @@ import tensorflow as tf
 from tensorflow.contrib import layers as cls
 
 
-def fc6l(learning_rate=0.001, optimizer=tf.train.AdadeltaOptimizer):
+def fc6(inputs, targets, learning_rate=0.001, optimizer=tf.train.AdadeltaOptimizer):
 
     # Define training optimizer with specified learning rate
     train_optimizer = optimizer(learning_rate=learning_rate)
-
-    # Setup different layers for the network
-    with tf.name_scope('data'):
-        inputs = tf.placeholder(tf.float32, shape=[None, 3072])
-        targets = tf.placeholder(tf.float32, shape=[None, 10])
 
     out_fl1 = cls.fully_connected(inputs, 3000, normalizer_fn=cls.batch_norm, scope='fcl-1')
     out_fl2 = cls.fully_connected(out_fl1, 3000, normalizer_fn=cls.batch_norm, scope='fcl-2')
@@ -24,47 +19,28 @@ def fc6l(learning_rate=0.001, optimizer=tf.train.AdadeltaOptimizer):
     summary_op = summary(accuracy=accuracy, error=error)
 
     # Package as seperate dictionaries and return
-    return package_return(accuracy, error, summary_op, train_op, inputs, targets)
+    return package_return(accuracy, error, summary_op, train_op)
 
 
-"""
-def two_conv_two_fc_model(learning_rate=0.001):
+def cv3fc3(inputs, targets, learning_rate=0.001, optimizer=tf.train.AdadeltaOptimizer):
 
-    optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate)
+    # Define training optimizer with specified learning rate
+    train_optimizer = optimizer(learning_rate=learning_rate)
 
-    with tf.name_scope('data'):
-        inputs = tf.placeholder(tf.float32, shape=[None, 32, 32, 3])
-        targets = tf.placeholder(tf.float32, shape=[None, 10])
+    out_cv1 = cls.conv2d(inputs, 5, 6, normalizer_fn=cls.batch_norm, scope='cv-1')
+    out_cv2 = cls.conv2d(out_cv1, 5, 8, normalizer_fn=cls.batch_norm, scope='cv-2')
+    out_cv2_flattened = cls.flatten(out_cv2, scope='flt')
+    out_fl1 = cls.fully_connected(out_cv2_flattened, 1000, normalizer_fn=cls.batch_norm, scope='fcl-1')
+    out_fl2 = cls.fully_connected(out_fl1, 1000, normalizer_fn=cls.batch_norm, scope='fcl-2')
+    out_fl3 = cls.fully_connected(out_fl2, 300, normalizer_fn=cls.batch_norm, scope='fcl-3')
+    output = cls.fully_connected(out_fl3, 10, activation_fn=None, scope='output')
 
-    with tf.variable_scope('conv2-1'):
-        out_cv1 = cls.conv2d(inputs, 5, 6)
+    # Setup metric and training operations
+    accuracy, error, train_op = setup_metrics(output, targets, train_optimizer)
+    summary_op = summary(accuracy=accuracy, error=error)
 
-    with tf.variable_scope('conv2-2'):
-        out_cv2 = cls.conv2d(out_cv1, 5, 8)
-
-    with tf.variable_scope('fcl-3'):
-        out_cv2_flattened = cls.flatten(out_cv2)
-        out_fl1 = cls.fully_connected(out_cv2_flattened, 50)
-
-    with tf.variable_scope('fcl-4'):
-        output = cls.fully_connected(out_fl1, 10)
-
-    with tf.name_scope('error'):
-        error = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=output, labels=targets))
-
-    with tf.name_scope('train'):
-        train_op = optimizer.minimize(error)
-
-    with tf.name_scope('accuracy'):
-        accuracy = tf.reduce_mean(tf.cast(tf.equal(
-            tf.argmax(output, 1), tf.argmax(targets, 1)), tf.float32))
-
-    tf.summary.scalar('error', error)
-    tf.summary.scalar('accuracy', accuracy)
-    summary_op = tf.summary.merge_all()
-
-    return package_return(accuracy, error, summary_op, train_op, inputs, targets)
-"""
+    # Package as seperate dictionaries and return
+    return package_return(accuracy, error, summary_op, train_op)
 
 
 def setup_metrics(predictions, labels, optimizer):
@@ -95,7 +71,7 @@ def summary(accuracy, error):
     return summary_op
 
 
-def package_return(accuracy, error, summary_op, train_op, inputs, targets):
+def package_return(accuracy, error, summary_op, train_op):
     metrics = {
         'accuracy': accuracy,
         'error': error
@@ -104,8 +80,4 @@ def package_return(accuracy, error, summary_op, train_op, inputs, targets):
         'summary': summary_op,
         'train': train_op
     }
-    data = {
-        'inputs': inputs,
-        'targets': targets
-    }
-    return metrics, ops, data
+    return metrics, ops
