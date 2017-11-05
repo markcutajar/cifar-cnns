@@ -208,8 +208,8 @@ class CIFAR10DataProvider(OneOfKDataProvider):
         self.filenames = []
         self.which_set = which_set
 
-        self.batch_files = {'train': settings.TRAIN_FILES.split(','), 'valid': settings.VALID_FILES.split(','),
-                            'test': settings.TEST_FILES.split(',')}
+        self.batch_files = {'train': settings.RAW_TRAIN.split(','), 'valid': settings.RAW_VALID.split(','),
+                            'test': settings.RAW_TEST.split(',')}
 
         # Get data and labels
         for filename in self.batch_files[self.which_set]:
@@ -226,7 +226,7 @@ class CIFAR10DataProvider(OneOfKDataProvider):
             raise ValueError('File(s) not loaded correctly: {}'.format(', '.join(self.batch_files)))
 
         # Load metadata
-        with open(settings.METADATA, 'rb') as file:
+        with open(settings.RAW_META, 'rb') as file:
             metadata = pickle.load(file, encoding='bytes')
 
         # Get label map from metadata
