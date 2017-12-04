@@ -8,7 +8,6 @@ data points.
 import tensorflow as tf
 import json
 import os
-import numpy as np
 from config import settings
 from pycf import data_prep
 
@@ -38,21 +37,29 @@ class CIFAR10DataProvider(object):
             'Expected which_set to be either train or valid. '
             'Got {0}'.format(which_set))
         self.which_set = which_set
-
         if shape not in ('2d', '3d'):
             raise ValueError('Shape can only be \'2d\' or \'3d\'. Given {}'.format(shape))
         self.shape = shape
 
+        # Set batches and total num
         if batch_size < 1:
             raise ValueError('batch_size must be >= 1')
         self._batch_size = batch_size
 
+        if self.which_set == 'train':
+            self._total_batches = int(40000 / batch_size)
+        else:
+            self._total_batches = int(10000 / batch_size)
+
+        # Load data
         self._load_metadata()
         self._load_dataset()
 
+        # Shuffle data
         if shuffle_order:
             self.dataset = self.dataset.shuffle(buffer_size=10000, seed=settings.SEED)
 
+        # Update batches and set iterators
         self._update_batch()
         self.set_epochs(epochs)
         self.iterator = self.dataset.make_one_shot_iterator()
@@ -92,16 +99,16 @@ class CIFAR10DataProvider(object):
 
         # Decode labels and set to one hot encoding
         label = tf.decode_raw(parsed_features["label_raw"], tf.int32)[0]
-        one_of_k_targets = tf.one_hot(label - 1, self.num_classes)
+        one_of_k_targets = tf.one_hot(label, self.num_classes)
 
         # Decode image
         image = tf.cast(tf.decode_raw(parsed_features["image_raw"], tf.int8), tf.float32)
 
         # If image 3d reshape
         if self.shape is '3d':
-            layers = tf.split(image, self._depth)
-            image = tf.stack(layers, axis=-1)
-            image = tf.reshape(image, (self._width, self._height, -1))
+            image = tf.split(image, self._depth)
+            image = tf.stack(image, axis=-1)
+            image = tf.reshape(image, [self._height, self._width, self._depth])
         else:
             image = tf.reshape(image, [self._height * self._width * self._depth])
 
@@ -110,6 +117,10 @@ class CIFAR10DataProvider(object):
     def get_dataset(self):
         """Return the whole dataset."""
         return self.dataset
+
+    def label_map(self):
+        """Return label map"""
+        return self.label_map
 
     def iterator(self):
         """Get iterator."""
@@ -144,3 +155,7 @@ class CIFAR10DataProvider(object):
     def _update_batch(self):
         """Update the batches of the dataset."""
         self.dataset = self.dataset.batch(self._batch_size)
+
+    def total_batches(self):
+        """Get the total number of available batches"""
+        return self._total_batches
