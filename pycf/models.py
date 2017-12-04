@@ -22,18 +22,22 @@ def fc6(inputs, targets, learning_rate=0.001, optimizer=tf.train.AdadeltaOptimiz
     return package_return(accuracy, error, summary_op, train_op)
 
 
-def cv3fc3(inputs, targets, learning_rate=0.001, optimizer=tf.train.AdadeltaOptimizer):
+def cv3fc2(inputs, targets,
+           width=(5, 5, 5), depth=(6, 8, 8),
+           learning_rate=0.001, optimizer=tf.train.AdadeltaOptimizer):
+
+    fc_width = round((inputs.shape[0] * inputs.shape[1] * depth[-1]) / 4)
 
     # Define training optimizer with specified learning rate
     train_optimizer = optimizer(learning_rate=learning_rate)
 
-    out_cv1 = cls.conv2d(inputs, 5, 6, normalizer_fn=cls.batch_norm, scope='cv-1')
-    out_cv2 = cls.conv2d(out_cv1, 5, 8, normalizer_fn=cls.batch_norm, scope='cv-2')
-    out_cv2_flattened = cls.flatten(out_cv2, scope='flt')
-    out_fl1 = cls.fully_connected(out_cv2_flattened, 1000, normalizer_fn=cls.batch_norm, scope='fcl-1')
-    out_fl2 = cls.fully_connected(out_fl1, 1000, normalizer_fn=cls.batch_norm, scope='fcl-2')
-    out_fl3 = cls.fully_connected(out_fl2, 300, normalizer_fn=cls.batch_norm, scope='fcl-3')
-    output = cls.fully_connected(out_fl3, 10, activation_fn=None, scope='output')
+    out_cv1 = cls.conv2d(inputs, width[0], depth[0], normalizer_fn=cls.batch_norm, scope='cv-1')
+    out_cv2 = cls.conv2d(out_cv1, width[1], depth[1], normalizer_fn=cls.batch_norm, scope='cv-2')
+    out_cv3 = cls.conv2d(out_cv2, width[2], depth[2], normalizer_fn=cls.batch_norm, scope='cv-3')
+    out_cv3_flattened = cls.flatten(out_cv3, scope='flt')
+    out_fl1 = cls.fully_connected(out_cv3_flattened, fc_width, normalizer_fn=cls.batch_norm, scope='fcl-1')
+    out_fl2 = cls.fully_connected(out_fl1, round(fc_width/4), normalizer_fn=cls.batch_norm, scope='fcl-2')
+    output = cls.fully_connected(out_fl2, 10, activation_fn=None, scope='output')
 
     # Setup metric and training operations
     accuracy, error, train_op = setup_metrics(output, targets, train_optimizer)
@@ -56,8 +60,6 @@ def setup_metrics(predictions, labels, optimizer):
         train_op = optimizer.minimize(error)
 
     return accuracy, error, train_op
-
-
 
 
 def accuracy_op(predictions, labels):
