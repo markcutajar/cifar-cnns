@@ -60,7 +60,7 @@ def run():
     # Save metadata
     logger.info('Saving metadata')
     save_metadata()
-    """
+
     # Iterate over all the sets to save as TFRecords
     for which_set in ('train', 'valid', 'test'):
 
@@ -89,7 +89,6 @@ def run():
 
                 img_raw = np.array(img).tostring()
                 label_raw = np.array(label).tostring()
-
                 example = tf.train.Example(features=tf.train.Features(feature={
                     'image_raw': _bytes_feature(img_raw),
                     'label_raw': _bytes_feature(label_raw),
@@ -98,4 +97,7 @@ def run():
 
                 writer.write(example.SerializeToString())
         writer.close()
-    """
+
+
+if __name__ == '__main__':
+    run()
