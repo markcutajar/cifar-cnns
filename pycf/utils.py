@@ -1,5 +1,10 @@
-from IPython.display import display, HTML
+import IPython.display
 import datetime
+from PIL import Image
+from io import BytesIO
+
+from matplotlib import pyplot as plt
+
 
 
 def show_graph(graph_def, frame_size=(900, 600)):
@@ -25,4 +30,14 @@ def show_graph(graph_def, frame_size=(900, 600)):
     iframe = """
         <iframe seamless style="width:{width}px;height:{height}px;border:0" srcdoc="{src}"></iframe>
     """.format(width=frame_size[0], height=frame_size[1] + 20, src=code.replace('"', '&quot;'))
-    display(HTML(iframe))
+    IPython.display.display(IPython.display.HTML(iframe))
+
+
+def display_image(image, mode='RGB', fmt='png'):
+    mfile = BytesIO()
+    Image.fromarray(image.astype('int8'), mode).save(mfile, fmt)
+    IPython.display.display(IPython.display.Image(data=mfile.getvalue()))
+
+
+def save_image(image, filename, mode='RGB'):
+    Image.fromarray(image.astype('int8'), mode).save('images/' + filename)
